@@ -1,14 +1,17 @@
 package org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.predicate;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
-import org.tyaa.demo.springboot.simplespa.dao.criteria.SearchCriteria;
+import com.googlecode.objectify.cmd.Query;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.criteria.SearchCriteria;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ProductModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /*
 * Строитель составного выражения фильтрации запрашиваемых данных
@@ -17,9 +20,11 @@ import java.util.stream.Collectors;
 public class ProductPredicatesBuilder {
 
     private List<SearchCriteria> params;
+    private Map<String, List<Long>> inMemoryFilterModel;
 
-    public ProductPredicatesBuilder() {
-        params = new ArrayList<>();
+    public ProductPredicatesBuilder(Map<String, List<Long>> inMemoryFilterModel) {
+        this.params = new ArrayList<>();
+        this.inMemoryFilterModel = inMemoryFilterModel;
     }
 
     // обеспечение возможности добавления предикатов в запрос query dsl
@@ -33,29 +38,30 @@ public class ProductPredicatesBuilder {
     }
 
     // построение запроса из всей цепочки предикатов
-    public BooleanExpression build() {
+    public Query<ProductModel> build() {
+
         if (params.size() == 0) {
             return null;
         }
+        // строим основу запроса на чтение данных из хранилища:
+        // объекты типа ProductModel
+        Query<ProductModel> query =
+                ofy().load().type(ProductModel.class);
         // на основе каждой структуры входных данных
         // формируем предикат,
         // отсеиваем только успешно созданные предикаты,
         // отбрасывая возможные выходные элементы потока со значением null
-        List<BooleanExpression> predicates = params.stream().map(param -> {
-            ProductPredicate predicate = new ProductPredicate(param);
+        params.forEach(searchCriteria -> {
+            ProductPredicate predicate = new ProductPredicate(searchCriteria);
             try {
-                return predicate.getPredicate();
+                predicate.getPredicate(query, inMemoryFilterModel);
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
-                return null;
             }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+        });
+
         // собираем список предикатов в результирующее составное условие
         // отбора результатов запроса к источнику данных
-        BooleanExpression result = Expressions.asBoolean(true).isTrue();
-        for (BooleanExpression predicate : predicates) {
-            result = result.and(predicate);
-        }
-        return result;
+        return query;
     }
 }

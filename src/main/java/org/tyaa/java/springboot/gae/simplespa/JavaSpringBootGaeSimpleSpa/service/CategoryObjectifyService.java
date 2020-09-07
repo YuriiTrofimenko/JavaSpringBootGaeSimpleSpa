@@ -8,7 +8,7 @@ import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.R
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.service.interfaces.ICategoryService;
 
 @Service
-public class CategoryService implements ICategoryService {
+public class CategoryObjectifyService implements ICategoryService {
 
     @Autowired
     private CategoryObjectifyDao categoryObjectifyDao;

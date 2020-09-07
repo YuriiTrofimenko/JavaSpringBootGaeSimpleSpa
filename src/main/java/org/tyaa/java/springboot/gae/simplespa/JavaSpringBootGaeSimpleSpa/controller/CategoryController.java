@@ -6,14 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.CategoryModel;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ResponseModel;
-import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.service.CategoryService;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.service.CategoryObjectifyService;
 
 @RestController
 @RequestMapping("/api")
 public class CategoryController {
 
     @Autowired
-    private CategoryService service;
+    private CategoryObjectifyService service;
 
     @GetMapping("/categories")
     public ResponseEntity<ResponseModel> getAll() {

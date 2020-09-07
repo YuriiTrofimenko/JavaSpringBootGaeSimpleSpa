@@ -12,7 +12,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProductSearchModel {
-    public enum Order {Asc, Desc}
+    public enum Order {ASC, DESC}
     public String searchString;
     public String orderBy;
     public Order sortingDirection;

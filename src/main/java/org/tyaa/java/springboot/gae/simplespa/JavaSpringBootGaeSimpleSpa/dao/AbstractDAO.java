@@ -48,7 +48,7 @@ public abstract class AbstractDAO<T> {
                             // чтобы указать, какого типа объекты нужно получить из хранилища;
                             // list - указание немедленно получить список объектов типа
                             // entityType из хранилища
-                            return ofy().load().type(entityType).list();
+                            return ofy().load().type(entityType).order("-__key__").list();
                     /* if (entitiesResult != null) {
                         entities.addAll(entitiesResult);
                     } */
