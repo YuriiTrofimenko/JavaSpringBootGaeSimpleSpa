@@ -2,15 +2,13 @@ package org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao;
 
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.cmd.Query;
 import org.springframework.stereotype.Repository;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.criteria.SearchCriteria;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.predicate.ProductPredicate;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.predicate.ProductPredicatesBuilder;
-import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.CategoryModel;
-import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ProductFilterModel;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ProductModel;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ProductSearchModel;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -32,7 +30,7 @@ public class ProductObjectifyDao extends AbstractDAO<ProductModel> {
     }
 
     // получение отфильтрованных и отсортированных объектов моделей товаров
-    public List<ProductModel> getFiltered(ProductSearchModel searchModel, Map<String, List<Long>> inMemoryFilterModel) {
+    public List<ProductModel> getFiltered(ProductSearchModel searchModel, List<SearchCriteria> inMemoryFilterModel) {
 
         ProductPredicatesBuilder builder = new ProductPredicatesBuilder(inMemoryFilterModel);
         // разбиение значения http-параметра search
@@ -48,16 +46,17 @@ public class ProductObjectifyDao extends AbstractDAO<ProductModel> {
             // на каждой итерации получаем один элемент - троицу
             // и добавляем строителю для составления полного выражения фильтра
             // (будет содержать условия фильтрации по всем указанным полям)
+            System.out.println(matcher.group(1));
+            System.out.println(matcher.group(2));
+            System.out.println(matcher.group(3));
+            System.out.println("***");
             builder.with(matcher.group(1), matcher.group(2), matcher.group(3));
         }
         // добавление сортировки и выполнение запроса к хранилищу
         // ofy().clear();
-        return builder.build()
-                .order(
-                        searchModel.sortingDirection == ProductSearchModel.Order.ASC
-                            ? searchModel.orderBy
-                            : "-" + searchModel.orderBy
-                ).list();
+        List<ProductModel> productModels = builder.build().list();
+        ProductPredicate.filtersQuota = true;
+        return productModels;
     }
 
     // получение отсортированных объектов моделей товаров без фильтрации
@@ -70,7 +69,7 @@ public class ProductObjectifyDao extends AbstractDAO<ProductModel> {
                 ).list();
     }
 
-    public BigDecimal getMin() {
+    public Double getMin() {
         return ofy().load().type(ProductModel.class)
                 .order("price")
                 .first()
@@ -78,7 +77,7 @@ public class ProductObjectifyDao extends AbstractDAO<ProductModel> {
                 .getPrice();
     }
 
-    public BigDecimal getMax() {
+    public Double getMax() {
         return ofy().load().type(ProductModel.class)
                 .order("-price")
                 .first()
