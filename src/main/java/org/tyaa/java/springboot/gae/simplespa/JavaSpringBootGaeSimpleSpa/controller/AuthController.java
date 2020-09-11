@@ -85,10 +85,11 @@ public class AuthController {
 
     @GetMapping("/users")
     public ResponseEntity<ResponseModel> getAllUsers(HttpSession httpSession) {
-        if (httpSession.getAttribute("user_id") != null) {
+        /* if (httpSession.getAttribute("user_id") != null) {
             return new ResponseEntity<>(userService.getAll(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
-        }
+        } */
+        return new ResponseEntity<>(userService.getAll(), HttpStatus.OK);
     }
 }
