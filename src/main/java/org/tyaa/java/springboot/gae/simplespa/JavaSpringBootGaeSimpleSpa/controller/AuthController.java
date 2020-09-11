@@ -25,7 +25,7 @@ public class AuthController {
     private AuthObjectifyService authService;
 
     @Autowired
-    UserObjectifyService userObjectifyService;
+    UserObjectifyService userService;
 
     // your_app_id.apps.googleusercontent.com
     private static final String CLIENT_ID = "249200472631-e7phm7ng0toufdea9lv38avkusrkvutg.apps.googleusercontent.com";
@@ -38,7 +38,6 @@ public class AuthController {
      * через аргумент метода
      * */
     @PostMapping(value = "/user/login")
-    @ResponseBody
     public ResponseEntity<ResponseModel> login(@RequestBody TokenModel tokenModel, HttpSession httpSession) throws Exception {
         System.out.println(tokenModel.idToken);
         // получение объекта управления аутентификацией гугл
@@ -59,7 +58,7 @@ public class AuthController {
             GoogleIdToken.Payload payload = idToken.getPayload();
             // использовальзование и/или сохранение данных учетной записи
             ResponseModel responseModel =
-                userObjectifyService.createOrGetUserByGoogleId(payload);
+                    userService.createOrGetUserByGoogleId(payload);
             //  в http-сеанс сохраняем DataStore идентификатор пользователя
             httpSession.setAttribute("user_id", ((UserModel)(responseModel.getData())).getId());
             return new ResponseEntity<>(responseModel, HttpStatus.OK);
@@ -82,5 +81,14 @@ public class AuthController {
         // стирание идентификатора пользователя из http-сеанса
         httpSession.removeAttribute("user_id");
         return new ResponseEntity<>(authService.onSignOut(), HttpStatus.OK);
+    }
+
+    @GetMapping("/users")
+    public ResponseEntity<ResponseModel> getAllUsers(HttpSession httpSession) {
+        if (httpSession.getAttribute("user_id") != null) {
+            return new ResponseEntity<>(userService.getAll(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
     }
 }
