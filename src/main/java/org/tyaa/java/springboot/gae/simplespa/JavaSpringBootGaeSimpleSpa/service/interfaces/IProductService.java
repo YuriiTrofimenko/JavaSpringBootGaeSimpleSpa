@@ -7,7 +7,7 @@ import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.P
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ResponseModel;
 
 public interface IProductService {
-    ResponseModel create(ProductModel productModel) throws IllegalAccessException, InstantiationException;
+    ResponseModel create(ProductModel productModel, Long userId) throws Exception;
     ResponseModel update(ProductModel productModel) throws IllegalAccessException, InstantiationException;
     ResponseModel getAll();
     ResponseModel delete(Long id) throws IllegalAccessException, InstantiationException;

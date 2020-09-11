@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.CategoryObjectifyDao;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.ProductObjectifyDao;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.SubscriptionObjectifyDao;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.criteria.SearchCriteria;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.predicate.ProductPredicate;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.dao.predicate.ProductPredicatesBuilder;
@@ -14,6 +15,7 @@ import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.C
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ProductModel;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.*;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.service.interfaces.IProductService;
+import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.utils.Mailer;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -30,14 +32,45 @@ public class ProductObjectifyService implements IProductService {
     @Autowired
     private CategoryObjectifyDao categoryObjectifyDao;
 
+    @Autowired
+    private SubscriptionObjectifyDao subscriptionObjectifyDao;
+
     private List<ProductModel> products;
 
     @Override
-    public ResponseModel create(ProductModel productModel) throws IllegalAccessException, InstantiationException {
+    public ResponseModel create(ProductModel productModel, Long userId) throws Exception {
         CategoryModel category
                 = categoryObjectifyDao.read(productModel.getCategoryId());
         if(category != null) {
             productObjectifyDao.create(productModel);
+            List<SubscriptionModel> subscriptionModels =
+                subscriptionObjectifyDao.getSubscriberListByCategoryId(category.getId());
+            subscriptionModels.forEach(subscriptionModel -> {
+                String messageString =
+                        "SimpleSPA GAE Admin added a new product: '"
+                                + productModel.getTitle()
+                                + "' (category: "
+                                + category.getName()
+                                + "). "
+                                + "Unsubscription link: https://ode-2191.oa.r.appspot.com/subscriber/"
+                                + userId
+                                + "/category/"
+                                + category.getId();
+                String subjectString = "New offer from SimpleSPA GAE";
+                String fromAddressString = "tyaa10@gmail.com";
+                String fromNameString = "CTFinder";
+                // TODO при помощи репозитория (дао) пользователей
+                // получать объекты моделей пользователей и
+                // подставлять из них имена и адреса электронной почты
+                // в метод отправки электронных писем sendPlainMsg
+                new Mailer().sendPlainMsg(
+                        messageString
+                        , subjectString
+                        , fromAddressString
+                        , fromNameString
+                        , toAddressString
+                        , toNameString);
+            });
             return ResponseModel.builder()
                     .status(ResponseModel.SUCCESS_STATUS)
                     .message(String.format("Product %s Created", productModel.getTitle()))

@@ -28,7 +28,61 @@ function onSignIn(googleUser) {
                 $("#username").text(response.data.name)
                 $("#useremail").text(response.data.email)
                 $("#userpicture").attr("src", response.data.pictureUrl)
-                authorized = true
+                authorized = true;
+                (function showCategories() {
+                    fetch('/api/categories', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    }).then((response) => {
+                        return response.json()
+                    }).then(response => {
+                        if (response) {
+                            if (response.status === 'success') {
+                                response.data.forEach(category => {
+                                    let categoryItem = document.createElement('li')
+                                    categoryItem.innerText = category.name
+                                    categoryItem.dataset.id = category.id
+                                    $('#categories').appendChild(categoryItem)
+                                })
+                                $('#categories > li').on('click', (ev) => {
+                                    const categoryId = ev.target.dataset.id
+                                    fetch('/api/subscription', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Accept': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            'categoryId': categoryId
+                                        })
+                                    }).then((response) => {
+                                        return response.json()
+                                    }).then(response => {
+                                        if (response) {
+                                            if (response.status === 'success') {
+                                                alert(response.message)
+                                            }
+                                        }
+                                    }).catch((error) => {
+                                        console.log(error.message)
+                                        throw error
+                                    }).finally(() => {
+                                        preloaderOff()
+                                    })
+                                })
+                            }
+                        }
+                    }).catch((error) => {
+                        console.log(error.message)
+                        throw error
+                    }).finally(() => {
+                        preloaderOff()
+                    })
+                    // $('categories').
+                })()
             }
         }
     }).catch((error) => {
@@ -47,6 +101,7 @@ function signOut() {
         // после получения отклика об успешном выходе из учетной записи от Google Auth Server
         // меняем значение флага "вошел" на отрицательное
         authorized = false
+        $('#categories').text('')
         // и скрываем элемент презагрузки
         preloaderOff()
     })

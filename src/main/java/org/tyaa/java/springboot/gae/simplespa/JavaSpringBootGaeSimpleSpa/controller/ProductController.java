@@ -9,6 +9,7 @@ import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.P
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.model.ResponseModel;
 import org.tyaa.java.springboot.gae.simplespa.JavaSpringBootGaeSimpleSpa.service.interfaces.IProductService;
 
+import javax.servlet.http.HttpSession;
 import java.util.List;
 
 @RestController
@@ -24,8 +25,8 @@ public class ProductController {
     }
 
     @PostMapping("/product")
-    public ResponseEntity<ResponseModel> create(@RequestBody ProductModel product) throws InstantiationException, IllegalAccessException {
-        return new ResponseEntity<>(service.create(product), HttpStatus.CREATED);
+    public ResponseEntity<ResponseModel> create(@RequestBody ProductModel product, HttpSession httpSession) throws InstantiationException, IllegalAccessException {
+        return new ResponseEntity<>(service.create(product, httpSession.getAttribute("user_id")), HttpStatus.CREATED);
     }
 
     @PatchMapping(value = "/product/{id}")
